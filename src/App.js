@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
 import Header from './componentes/Header';
 import Timeline from './componentes/Timeline';
-import {} from "./css/reset.css";
-import {} from "./css/login.css";
-import {} from "./css/timeline.css";
 
 class App extends Component {
   render() {
