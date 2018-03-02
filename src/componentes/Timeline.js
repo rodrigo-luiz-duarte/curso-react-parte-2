@@ -1,58 +1,69 @@
 import React, { Component } from 'react';
 import FotoItem from './FotoItem';
+import { connect } from 'react-redux';
 import TimelineService from '../services/TimelineService';
-export default class Timeline extends Component {
 
-  constructor(props){
-    super(props);
-    this.state = {fotos:[]};
-    this.login = this.props.login;      
-  }
+class Timeline extends Component {
 
-  componentWillMount(){
-    this.props.store.subscribe(() => {
-      this.setState({fotos:this.props.store.getState().timeline});
-    })
-  }
+    constructor(props){
+      super(props);      
+      this.login = this.props.login;      
+    }
 
-  carregaFotos(){  
-    let urlPerfil;
+    carregaFotos(){  
+      let urlPerfil;
 
-    if(this.login === undefined) {
-      urlPerfil = `http://localhost:8080/api/fotos?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`;
-    } else {
-      urlPerfil = `http://localhost:8080/api/public/fotos/${this.login}`;
-    } 
+      if(this.login === undefined) {
+        urlPerfil = `http://localhost:8080/api/fotos?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`;
+      } else {
+        urlPerfil = `http://localhost:8080/api/public/fotos/${this.login}`;
+      } 
 
-    this.props.store.dispatch(TimelineService.lista(urlPerfil));                  
-  }
+      this.props.lista(urlPerfil);                  
+    }
 
-  componentDidMount(){
-    this.carregaFotos();
-  }
-
-  componentWillReceiveProps(nextProps){
-    if(nextProps.login !== undefined){
-      this.login = nextProps.login;
+    componentDidMount(){
       this.carregaFotos();
     }
-  }
 
-  like(fotoId) {
-    this.props.store.dispatch(TimelineService.like(fotoId));
-  }
+    componentWillReceiveProps(nextProps){
+      if(nextProps.login !== this.login){          
+        this.login = nextProps.login;
+        this.carregaFotos();
+      }
+    }
 
-  comenta(fotoId,textoComentario) {
-    this.props.store.dispatch(TimelineService.comenta(fotoId,textoComentario));
-  }
+    render(){
+        console.log("render");
+        return (
+        <div className="fotos container">
+          {
+            this.props.fotos.map(foto => <FotoItem key={foto.id} foto={foto} like={this.props.like} comenta={this.props.comenta}/>)
+          }                  
+        </div>            
+        );
+    }
+}
 
-  render(){
-      return (
-      <div className="fotos container">
-        {
-          this.state.fotos.map(foto => <FotoItem key={foto.id} foto={foto} like={this.like.bind(this)} comenta={this.comenta.bind(this)}/>)
-        }                     
-      </div>            
-      );
+const mapStateToProps = state => {
+  return {fotos : state.timeline}
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    like : (fotoId) => {
+      dispatch(TimelineService.like(fotoId));
+    },
+    comenta : (fotoId,textoComentario) => {
+      dispatch(TimelineService.comenta(fotoId,textoComentario))
+    },
+    lista : (urlPerfil) => {
+      dispatch(TimelineService.lista(urlPerfil));      
+    }
+
   }
 }
+
+const TimelineContainer = connect(mapStateToProps,mapDispatchToProps)(Timeline);
+
+export default TimelineContainer
